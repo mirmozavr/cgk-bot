@@ -1,0 +1,4 @@
+aiohttp==3.8.4
+alembic==1.9.4
+SQLAlchemy==2.0.4
+ruamel.yaml==0.17.21
