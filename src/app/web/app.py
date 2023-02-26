@@ -1,10 +1,8 @@
 from aiohttp.web import (
     Application as AiohttpApplication,
-    Request as AiohttpRequest,
-    View as AiohttpView,
 )
-from src.web.config import setup_config
-from src.web.session import setup_session
+from src.app.web.config import setup_config
+from src.app.web.session import setup_session
 class Application(AiohttpApplication):
     ...
 

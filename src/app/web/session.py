@@ -6,7 +6,7 @@ from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from cryptography import fernet
 
 if t.TYPE_CHECKING:
-    from src.web.app import Application
+    from src.app.web.app import Application
 
 
 def setup_session(app: "Application"):

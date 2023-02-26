@@ -4,4 +4,4 @@ idea/
 .idea/
 .coverage
 *.pyc
-env
+src/env

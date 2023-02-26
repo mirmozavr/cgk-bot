@@ -1,7 +1,7 @@
 import typing as t
 
 if t.TYPE_CHECKING:
-    from src.web.app import Application
+    from src.app.web.app import Application
 
 
 class BaseAccessor:
