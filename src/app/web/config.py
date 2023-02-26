@@ -25,11 +25,19 @@ class BotConfig:
 
 @dataclass
 class DatabaseConfig:
-    database: str
+    db_name: str
     user: str
     password: str
     host: str = "localhost"
     port: int = 5432
+    dialect: str = "postgresql+asyncpg"
+
+    def get_db_url(self) -> str:
+        """
+        Form database url string for SQLAlchemy ORM engine
+        :return: Database url
+        """
+        return f"{self.dialect}://{self.user}:{self.password}@{self.host}:{self.port}/{self.db_name}"
 
 
 @dataclass
