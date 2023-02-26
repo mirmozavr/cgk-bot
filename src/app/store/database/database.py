@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from src.app.store.database import DeclarativeBase
+from src.app.store.database import Base
 
 if t.TYPE_CHECKING:
     from src.app.web.app import Application
@@ -18,7 +18,7 @@ class Database:
         self.session: Optional[AsyncSession] = None
 
     async def connect(self, *_: list, **__: dict) -> None:
-        self._db = DeclarativeBase
+        self._db = Base
         self._engine = create_async_engine(
             url=self.app.config.database.get_db_url(),
             echo=False,
