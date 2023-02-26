@@ -1,3 +1,6 @@
-from sqlalchemy.ext.asyncio import create_async_engine
+from aiohttp.web import run_app
 
-engine = create_async_engine()
+from src.web.app import setup_app
+
+if __name__ == "__main__":
+    run_app(setup_app(dev_config=True))
