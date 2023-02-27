@@ -32,7 +32,7 @@ def upgrade() -> None:
     op.bulk_insert(
         admins_table,
         [
-            {"email": raw_config["admin"]["email"], "password": sha256(raw_config["admin"]["email"].encode()).hexdigest()},
+            {"email": raw_config["admin"]["email"], "password": sha256(raw_config["admin"]["password"].encode()).hexdigest()},
         ]
     )
     # ### end Alembic commands ###
