@@ -11,7 +11,7 @@ class BaseAccessor:
         app.on_cleanup.append(self.disconnect)
 
     async def connect(self, app: "Application"):
-        raise NotImplementedError
+        pass
 
     async def disconnect(self, app: "Application"):
-        raise NotImplementedError
+        pass
