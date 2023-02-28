@@ -9,12 +9,12 @@ if t.TYPE_CHECKING:
 class Store:
     def __init__(self, app: "Application"):
         from src.app.store.admin.accessor import AdminAccessor
+        from src.app.store.quiz.accessor import QuizAccessor
         # from src.app.store.bot.manager import BotManager
-        # from src.app.store.quiz.accessor import QuizAccessor
         # from src.app.store.vk_api.accessor import VkApiAccessor
 
         self.admins = AdminAccessor(app)
-        # self.quizzes = QuizAccessor(app)
+        self.quiz = QuizAccessor(app)
         # self.vk_api = VkApiAccessor(app)
         # self.bots_manager = BotManager(app)
 
