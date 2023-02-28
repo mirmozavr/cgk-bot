@@ -20,4 +20,4 @@ class QuestionModel(Base):
     answer = Column(String, unique=False, nullable=False)
 
     def __repr__(self):
-        return f"QuestionModel(id={self.id!r}, title={self.title!r}, title={self.answer!r})"
+        return f"QuestionModel(id={self.id!r}, title={self.title!r}, answer={self.answer!r})"
