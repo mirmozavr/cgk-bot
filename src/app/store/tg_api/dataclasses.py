@@ -11,14 +11,6 @@ class User:
 
 
 @dataclass
-class Message:
-    message_id: int
-    text: str = None
-    date: int = None
-    user: User = None
-
-
-@dataclass
 class Chat:
     id: int
     type: str
@@ -28,6 +20,15 @@ class Chat:
 
 
 @dataclass
+class Message:
+    message_id: int
+    text: str = None
+    date: int = None
+    user: User = None
+    chat: Chat = None
+
+
+@dataclass
 class Update:
-    id: int
-    message: Message
+    update_id: int
+    message: "Message"
