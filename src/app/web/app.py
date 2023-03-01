@@ -51,7 +51,7 @@ class View(AiohttpView):
 app = Application()
 
 apispec_params = {
-    "title": "Vk Quiz Bot",
+    "title": "CGK Bot",
     "url": "/docs/json",
     "swagger_path": "/docs"}
 
