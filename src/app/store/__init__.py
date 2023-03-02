@@ -9,13 +9,13 @@ if t.TYPE_CHECKING:
 class Store:
     def __init__(self, app: "Application"):
         from src.app.store.admin.accessor import AdminAccessor
-        # from src.app.store.quiz.accessor import QuizAccessor # Resolve merge conflict
+        from src.app.store.quiz.accessor import QuizAccessor
         from src.app.bot.manager import BotManager
         from src.app.store.tg_api.accessor import TgApiAccessor
 
         self.admins = AdminAccessor(app)
         self.bot_manager = BotManager(app)
-        # self.quiz = QuizAccessor(app) # Resolve merge conflict
+        self.quiz = QuizAccessor(app)
         self.tg_api = TgApiAccessor(app)
 
 
