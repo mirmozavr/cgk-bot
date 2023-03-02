@@ -7,7 +7,6 @@ class User:
     is_bot: bool
     first_name: str
     username: str = None
-    language_code: str = None
 
 
 @dataclass

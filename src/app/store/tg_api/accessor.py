@@ -59,7 +59,7 @@ class TgApiAccessor(BaseAccessor):
                     continue
                 update = self.dict_to_dc(raw_update)
 
-                # todo: handle updates here
+                await self.app.store.bot_manager.handle_update(update)
 
                 self.offset = update.update_id + 1
 
@@ -119,19 +119,21 @@ class TgApiAccessor(BaseAccessor):
                     id=raw_data["message"]["from"]["id"],
                     is_bot=raw_data["message"]["from"]["is_bot"],
                     first_name=raw_data["message"]["from"]["first_name"],
-                    username=raw_data["message"]["from"]["username"],
-                    language_code=raw_data["message"]["from"]["language_code"],
+                    username=raw_data["message"]["from"].get("username"),
                 ),
             ),
         )
 
-    # async def send_message(self, message: Message) -> None:
-    #     params = {
-    #         "user_id": message.user_id,
-    #         "random_id": int.from_bytes(os.urandom(4), byteorder="big"),
-    #         "message": f"I GOT YOUR MESSAGE\n{message.text}",
-    #         "access_token": self.app.config.bot.token,
-    #         "v": "5.131",
-    #     }
-    #     msg_url = "https://api.vk.com/method/messages.send"
-    #     await self.session.get(msg_url, params=params)
+    async def send_message(self, chat_id: int, text: str) -> None:
+        """
+        Send text message to chat
+        :param chat_id: Chat ID
+        :param text: Text to send to chat
+        :return:
+        """
+        params = {
+            "chat_id": chat_id,
+            "text": text,
+        }
+        snd_msg_url = f"{self.base_url}/sendMessage"
+        await self.session.get(snd_msg_url, params=params)
