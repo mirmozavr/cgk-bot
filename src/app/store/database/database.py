@@ -27,7 +27,7 @@ class Database:
         # noinspection PyTypeChecker
         self.session = sessionmaker(
             self._engine, expire_on_commit=False, class_=AsyncSession
-        ).begin()
+        )
 
     async def disconnect(self, *_: list, **__: dict) -> None:
         if self._engine is not None:

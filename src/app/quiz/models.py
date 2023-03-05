@@ -1,3 +1,4 @@
+import string
 from dataclasses import dataclass
 from typing import Optional
 
@@ -21,3 +22,9 @@ class QuestionModel(Base):
 
     def __repr__(self):
         return f"QuestionModel(id={self.id!r}, title={self.title!r}, answer={self.answer!r})"
+
+    def check_answer(self, answer):
+        return (
+                self.answer.lower().strip(string.punctuation)
+                == answer.lower().strip(string.punctuation)
+        )

@@ -28,6 +28,15 @@ class Message:
 
 
 @dataclass
+class CallbackQuery:
+    id: int
+    user: User
+    message: Message = None
+    data: str = None
+
+
+@dataclass
 class Update:
     update_id: int
-    message: "Message"
+    message: Message = None
+    callback_query: CallbackQuery = None
