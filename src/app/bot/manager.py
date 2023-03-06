@@ -39,22 +39,22 @@ class BotManager:
         if game.status == cgk_state.DISCUSSION and message.text[1:] != "end_game":
             return
         # handle menu commands
-        elif message.text[1:] in cgk_config.menu:
+        elif self.extract_command(message) in cgk_config.menu:
             await self.app.store.tg_api.send_message(
-                chat_id=game.id, text=cgk_config.menu[message.text[1:]]
+                chat_id=game.id, text=cgk_config.menu[self.extract_command(message)]
             )
             return
 
         # Handle commands
         # Send join team inline buttons
-        elif game.status == cgk_state.OFF and message.text[1:].startswith("team_up"):
+        elif game.status == cgk_state.OFF and self.extract_command(message) == "team_up":
             game.status = cgk_state.TEAM_UP
             await self.app.store.tg_api.send_inline_button(message, "join")
 
-        # start game, start sending questions
+        # start_game, start sending questions
         elif (
             game.status == cgk_state.TEAM_UP
-            and message.text[1:].startswith("start_game")
+            and self.extract_command(message) == "start_game"
             and game.team_size > 0
         ):
             game.shuffle_team()
@@ -67,7 +67,7 @@ class BotManager:
             await self.send_question(game)
 
         # end_game, clear game
-        elif message.text[1:] == "end_game":
+        elif self.extract_command(message) == "end_game":
             await self.app.store.tg_api.remove_buttons(game, f"Game ended by {message.user.first_name}")
             game.clear_game()
 
@@ -75,13 +75,13 @@ class BotManager:
         elif game.status == cgk_state.CAPITAN:
             time_spent = message.date - game.update_time
             print("CHOOSE TIME SPENT", time_spent)
-            if time_spent > cgk_config.cap_choose_player_time:
+            if time_spent > cgk_config.TIME_LIMIT_CAPITAN:
                 game.score_host += 1
                 await self.app.store.tg_api.remove_buttons(
                     game, f"Player select is late! Round lost\n{game.score}"
                 )
                 game.status = cgk_state.WAIT
-            elif time_spent <= cgk_config.cap_choose_player_time and message.user.id == game.cap_id:
+            elif time_spent <= cgk_config.TIME_LIMIT_CAPITAN and message.user.id == game.cap_id:
                 responder = await self.app.store.tg_api.get_player_by_name(
                     game, message.text
                 )
@@ -90,7 +90,7 @@ class BotManager:
                     game.responder_id = responder.id
                     game.status = cgk_state.ANSWER
                     update_time = await self.app.store.tg_api.remove_buttons(
-                        game, f"{responder.first_name}, send your answer in {cgk_config.wait_answer_time} sec!!!"
+                        game, f"{responder.first_name}, send your answer in {cgk_config.TIME_LIMIT_ANSWER} sec!!!"
                     )
                     game.update_time = update_time
 
@@ -98,14 +98,14 @@ class BotManager:
         elif game.status == cgk_state.ANSWER:
             time_spent = message.date - game.update_time
             print("answer TIME SPENT", time_spent)
-            if time_spent > cgk_config.wait_answer_time:
+            if time_spent > cgk_config.TIME_LIMIT_ANSWER:
                 game.score_host += 1
                 game.status = cgk_state.WAIT
                 await self.app.store.tg_api.send_message(
                     game.id, f"Answer is late! Round lost\n{game.score}"
                 )
 
-            elif time_spent <= cgk_config.wait_answer_time and message.user.id == game.responder_id:
+            elif time_spent <= cgk_config.TIME_LIMIT_ANSWER and message.user.id == game.responder_id:
                 last_question = await self.app.store.quiz.get_question_by_id(
                     game.last_question_id
                 )
@@ -144,12 +144,12 @@ class BotManager:
         question = await self.app.store.quiz.get_question_for_game(game)
         game.add_question_to_history(question.id)
         await self.app.store.tg_api.send_message(game.id, question.title)
-        await asyncio.sleep(cgk_config.discussion_first)
-        await self.app.store.tg_api.send_message(game.id, f"{cgk_config.discussion_second} seconds remaining")
-        await asyncio.sleep(cgk_config.discussion_second)
+        await asyncio.sleep(cgk_config.TIME_LIMIT_DISC_MAIN)
+        await self.app.store.tg_api.send_message(game.id, f"{cgk_config.TIME_LIMIT_DISC_EXTRA} seconds remaining")
+        await asyncio.sleep(cgk_config.TIME_LIMIT_DISC_EXTRA)
         game.status = cgk_state.CAPITAN
         update_time = await self.app.store.tg_api.send_choose_responder_buttons(
-            game, f"Cap, who will answer?\n{cgk_config.cap_choose_player_time} sec to choose"
+            game, f"Cap, who will answer?\n{cgk_config.TIME_LIMIT_CAPITAN} sec to choose"
         )
         game.update_time = update_time
 
@@ -180,11 +180,11 @@ class BotManager:
         usr = f"@{cq.user.username}" if cq.user.username else cq.user.first_name
         await self.app.store.tg_api.answer_cq(cq, "You are in the team")
         await self.app.store.tg_api.send_message(
-            cq.message.chat.id, f"{usr} joined the team!"
+            game.id, f"{usr} joined the team!"
         )
         if game.team_size == 6:
             await self.app.store.tg_api.send_message(
-                cq.message.chat.id, "Team is full"
+                game.id, "Team is full"
             )
 
         async with self.app.database.session.begin() as session:
@@ -204,3 +204,7 @@ class BotManager:
                 game.id, f"Team won. Congrats!\n{game.score}"
             )
         game.clear_game()
+
+    @staticmethod
+    def extract_command(message: Message):
+        return message.text.split("@")[0][1:]

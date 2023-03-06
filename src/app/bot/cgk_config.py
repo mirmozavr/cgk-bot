@@ -3,10 +3,10 @@ from dataclasses import dataclass
 
 @dataclass
 class CGKConfig:
-    cap_choose_player_time: int = 10
-    wait_answer_time: int = 10
-    discussion_first: int = 5
-    discussion_second: int = 3
+    TIME_LIMIT_CAPITAN: int = 5
+    TIME_LIMIT_ANSWER: int = 5
+    TIME_LIMIT_DISC_MAIN: int = 5
+    TIME_LIMIT_DISC_EXTRA: int = 5
     menu: dict = None
 
     def __init__(self):
@@ -18,7 +18,14 @@ class CGKConfig:
                 "Send /start_game to start game\n"
                 "Send /end_game anytime to end the game\n"
             ),
-            "rules": "Game rules....",
+            "rules": (
+                f"Game up to 6 points. {self.TIME_LIMIT_DISC_MAIN+self.TIME_LIMIT_DISC_EXTRA} sec to discuss"
+                "Randomly selected capitan will choose the player, who will answer"
+                "If answer is correct, team will gain 1 point, otherwise host will gain 1 point."
+                "Also if capitan spent too much time choosing player, or answering player"
+                "spent too much time answering, host will gain 1 point"
+                "\nGood luck!"
+            )
         }
 
 
