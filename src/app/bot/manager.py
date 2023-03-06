@@ -159,31 +159,34 @@ class BotManager:
     async def handle_callback_query(self, cq: CallbackQuery):
         game = await self.app.store.tg_api.get_game_by_message(cq.message)
 
-        if cq.data == "join" and game.status == cgk_state.TEAM_UP:
-            if game.team_size >= 6:
-                await self.app.store.tg_api.answer_cq(cq, "Team is full :(")
-            elif game.check_player_in_team(cq.user.id):
-                await self.app.store.tg_api.answer_cq(cq, "You already in the team")
-            else: # todo: add guard statement, less indentation
-                try:
-                    await self.app.store.tg_api.create_player_by_message(cq)
-                except IntegrityError:
-                    pass
-
-                game.add_player_to_team(cq.user.id)
-                usr = f"@{cq.user.username}" if cq.user.username else cq.user.first_name
-                await self.app.store.tg_api.answer_cq(cq, "You are in the team")
-                await self.app.store.tg_api.send_message(
-                    cq.message.chat.id, f"{usr} joined the team!"
-                )
-                if game.team_size == 6:
-                    await self.app.store.tg_api.send_message(
-                        cq.message.chat.id, "Team is full"
-                    )
-
-        else:
+        if not (game.status == cgk_state.TEAM_UP and cq.data == "join"):
             # handle random cq requests
             await self.app.store.tg_api.answer_cq(cq, "")
+            return
+
+        if game.team_size >= 6:
+            await self.app.store.tg_api.answer_cq(cq, "Team is full :(")
+            return
+        if game.check_player_in_team(cq.user.id):
+            await self.app.store.tg_api.answer_cq(cq, "You already in the team")
+            return
+
+        try:
+            await self.app.store.tg_api.create_player_by_message(cq)
+        except IntegrityError:
+            pass
+
+        game.add_player_to_team(cq.user.id)
+        usr = f"@{cq.user.username}" if cq.user.username else cq.user.first_name
+        await self.app.store.tg_api.answer_cq(cq, "You are in the team")
+        await self.app.store.tg_api.send_message(
+            cq.message.chat.id, f"{usr} joined the team!"
+        )
+        if game.team_size == 6:
+            await self.app.store.tg_api.send_message(
+                cq.message.chat.id, "Team is full"
+            )
+
         async with self.app.database.session.begin() as session:
             session.add(game)
         print("After CQ")
