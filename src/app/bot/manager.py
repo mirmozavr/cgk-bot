@@ -134,8 +134,7 @@ class BotManager:
         # check if game finished
         await self.check_game_finished(game)
         # update db with game object
-        async with self.app.database.session.begin() as session:
-            session.add(game)
+        await self.update_game_db(game)
 
         # at the end check if need to send next question
         print("At end")
@@ -165,8 +164,7 @@ class BotManager:
         )
         game.update_time = update_time
 
-        async with self.app.database.session.begin() as session:
-            session.add(game)
+        await self.update_game_db(game)
 
     async def handle_callback_query(self, cq: CallbackQuery):
         game = await self.app.store.tg_api.get_game_by_message(cq.message)
@@ -195,8 +193,7 @@ class BotManager:
         if game.team_size == 6:
             await self.app.store.tg_api.send_message(game.id, "Team is full")
 
-        async with self.app.database.session.begin() as session:
-            session.add(game)
+        await self.update_game_db(game)
         print("After CQ")
         pprint(game)
 
@@ -212,6 +209,10 @@ class BotManager:
                 game.id, f"Team won. Congrats!\n{game.score}"
             )
         game.clear_game()
+
+    async def update_game_db(self, game: GameModel):
+        async with self.app.database.session.begin() as session:
+            session.add(game)
 
     @staticmethod
     def extract_command(message: Message):
