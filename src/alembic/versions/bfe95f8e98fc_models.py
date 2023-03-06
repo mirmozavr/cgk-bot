@@ -29,7 +29,7 @@ def upgrade() -> None:
     sa.UniqueConstraint('email')
     )
     op.create_table('games',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('score_host', sa.Integer(), nullable=False),
     sa.Column('score_team', sa.Integer(), nullable=False),

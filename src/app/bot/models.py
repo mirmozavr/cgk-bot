@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from random import sample
 
-from sqlalchemy import Integer, Column, String, TIMESTAMP
+from sqlalchemy import Integer, Column, String, BigInteger
 
 from src.app.store.database.sqlalchemy_base import Base
 
@@ -19,7 +19,7 @@ class Game:
 
 class GameModel(Base):
     __tablename__ = "games"
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, primary_key=True)
     status = Column(String, default="off", nullable=False)
     score_host = Column(Integer, default=0, nullable=False)
     score_team = Column(Integer, default=0, nullable=False)

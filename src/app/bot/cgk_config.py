@@ -19,7 +19,7 @@ class CGKConfig:
                 "Send /end_game anytime to end the game\n"
             ),
             "rules": (
-                f"Game up to 6 points. {self.TIME_LIMIT_DISC_MAIN+self.TIME_LIMIT_DISC_EXTRA} sec to discuss"
+                f"Game is played up to 6 points. {self.TIME_LIMIT_DISC_MAIN+self.TIME_LIMIT_DISC_EXTRA} sec to discuss"
                 "Randomly selected capitan will choose the player, who will answer"
                 "If answer is correct, team will gain 1 point, otherwise host will gain 1 point."
                 "Also if capitan spent too much time choosing player, or answering player"
