@@ -25,7 +25,7 @@ class CGKConfig:
                 "Also if capitan spent too much time choosing player, or answering player"
                 "spent too much time answering, host will gain 1 point"
                 "\nGood luck!"
-            )
+            ),
         }
 
 
