@@ -77,6 +77,8 @@ class TgApiAccessor(BaseAccessor):
             "team_up": "Gather the team",
             "start_game": "Start game",
             "end_game": "End game",
+            "group_stats": "Group game stats",
+            "player_stats": "Personal game stats",
         }
         params = {
             "commands": json.dumps(
@@ -294,6 +296,15 @@ class TgApiAccessor(BaseAccessor):
                 (PlayerModel.first_name == name)
                 & (PlayerModel.id.in_(map(int, game.team_to_list())))
             )
+        )
+        async with self.app.database.session.begin() as session:
+            result = await session.scalars(stmt)
+            return result.one_or_none()
+
+    async def get_player_by_id(self, player_id: int) -> Optional[PlayerModel]:
+        stmt = (
+            select(PlayerModel)
+            .where(PlayerModel.id == player_id)
         )
         async with self.app.database.session.begin() as session:
             result = await session.scalars(stmt)

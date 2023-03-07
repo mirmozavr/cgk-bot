@@ -5,7 +5,7 @@ from pprint import pprint
 from sqlalchemy.exc import IntegrityError
 
 from src.app.bot.cgk_config import CGKConfig, CGKState
-from src.app.bot.models import GameModel
+from src.app.bot.models import GameModel, PlayerModel
 from src.app.store.tg_api.dataclasses import Message, Update, CallbackQuery
 
 if t.TYPE_CHECKING:
@@ -41,9 +41,14 @@ class BotManager:
         # handle menu commands
         elif self.extract_command(message) in cgk_config.menu:
             await self.app.store.tg_api.send_message(
-                chat_id=game.id, text=cgk_config.menu[self.extract_command(message)]
+                game.id, cgk_config.menu[self.extract_command(message)]
             )
             return
+        elif self.extract_command(message) == "group_stats":
+            await self.app.store.tg_api.send_message(game.id, game.statistic)
+        elif self.extract_command(message) == "player_stats":
+            player = await self.app.store.tg_api.get_player_by_id(message.user.id)
+            await self.app.store.tg_api.send_message(game.id, player.statistic)
 
         # Handle commands
         # Send join team inline buttons
@@ -70,6 +75,7 @@ class BotManager:
 
         # end_game, clear game
         elif self.extract_command(message) == "end_game":
+            game.canceled += 1
             await self.app.store.tg_api.remove_buttons(
                 game, f"Game ended by {message.user.first_name}"
             )
@@ -104,9 +110,11 @@ class BotManager:
         # RESPONDER is answering
         elif game.status == cgk_state.ANSWER:
             time_spent = message.date - game.update_time
+            responder = await self.app.store.tg_api.get_player_by_id(message.user.id)
             if time_spent > cgk_config.TIME_LIMIT_ANSWER:
                 game.score_host += 1
                 game.status = cgk_state.WAIT
+                responder.ans_late += 1
                 await self.app.store.tg_api.send_message(
                     game.id, f"Answer is late! Round lost\n{game.score}"
                 )
@@ -121,16 +129,19 @@ class BotManager:
                 if last_question.check_answer(message.text):
                     game.score_team += 1
                     game.status = cgk_state.WAIT
+                    responder.ans_correct += 1
                     await self.app.store.tg_api.send_message(
                         game.id, f"Correct!!!\n{game.score}"
                     )
                 else:
                     game.score_host += 1
                     game.status = cgk_state.WAIT
+                    responder.ans_wrong += 1
                     await self.app.store.tg_api.send_message(
                         game.id,
                         f"Wrong!!! Correct answer: {last_question.answer}\n{game.score}",
                     )
+            await self.update_player_db(responder)
         # check if game finished
         await self.check_game_finished(game)
         # update db with game object
@@ -201,10 +212,12 @@ class BotManager:
         if 6 not in (game.score_team, game.score_host):
             return
         if game.score_host == 6:
+            game.loses += 1
             await self.app.store.tg_api.send_message(
                 game.id, f"Host won.\n{game.score}"
             )
         elif game.score_team == 6:
+            game.wins += 1
             await self.app.store.tg_api.send_message(
                 game.id, f"Team won. Congrats!\n{game.score}"
             )
@@ -213,6 +226,10 @@ class BotManager:
     async def update_game_db(self, game: GameModel):
         async with self.app.database.session.begin() as session:
             session.add(game)
+
+    async def update_player_db(self, player: PlayerModel):
+        async with self.app.database.session.begin() as session:
+            session.add(player)
 
     @staticmethod
     def extract_command(message: Message):
