@@ -1,6 +1,5 @@
 import asyncio
 import typing as t
-from pprint import pprint
 
 from sqlalchemy.exc import IntegrityError
 
@@ -19,24 +18,23 @@ class BotManager:
     def __init__(self, app: "Application"):
         self.app = app
 
-    async def handle_update(self, update: Update):
-        pprint(update)
+    async def handle_update(self, update: Update) -> None:
         if update.message:
             await self.handle_message(update.message)
         elif update.callback_query:
             await self.handle_callback_query(update.callback_query)
 
-    async def handle_message(self, message: Message):
+    async def handle_message(self, message: Message) -> None:
         # Get a Game object if game in database, else create new Game and add to database
         game = await self.app.store.tg_api.get_game_by_message(message)
         if game is None:
             game = await self.app.store.tg_api.create_game_by_message(message)
 
-        print("at start")
-        pprint(game)
-
-        # skip messages if in discussion
-        if game.status == cgk_state.DISCUSSION and message.text[1:] != "end_game":
+        # skip messages if in discussion, capitan or answer
+        if (
+            game.status in (cgk_state.DISCUSSION, cgk_state.CAPITAN, cgk_state.ANSWER)
+            and self.extract_command(message) != "end_game"
+        ):
             return
         # handle menu commands
         elif self.extract_command(message) in cgk_config.menu:
@@ -66,9 +64,9 @@ class BotManager:
         ):
             game.shuffle_team()
             # declare a capitan to the group
-            capitan = await self.app.store.tg_api.get_capitan(game)
+            capitan = await self.app.store.tg_api.get_player_by_id(game.cap_id)
             await self.app.store.tg_api.send_message(
-                game.id, f"{capitan.first_name} is a capitan of the team"
+                game.id, f"{capitan.first_name} is the capitan!"
             )
             await asyncio.sleep(1)
             await self.send_question(game)
@@ -97,13 +95,12 @@ class BotManager:
                 responder = await self.app.store.tg_api.get_player_by_name(
                     game, message.text
                 )
-                print("responder", responder)
                 if responder:
                     game.responder_id = responder.id
                     game.status = cgk_state.ANSWER
                     update_time = await self.app.store.tg_api.remove_buttons(
                         game,
-                        f"{responder.first_name}, send your answer in {cgk_config.TIME_LIMIT_ANSWER} sec!!!",
+                        f"{responder.first_name}, send your answer in {cgk_config.TIME_LIMIT_ANSWER} sec!",
                     )
                     game.update_time = update_time
 
@@ -141,15 +138,14 @@ class BotManager:
                         game.id,
                         f"Wrong!!! Correct answer: {last_question.answer}\n{game.score}",
                     )
+            # update db with player object after answering
             await self.update_player_db(responder)
         # check if game finished
         await self.check_game_finished(game)
         # update db with game object
         await self.update_game_db(game)
 
-        # at the end check if need to send next question
-        print("At end")
-        pprint(game)
+        # at the end check if next question needed
         if game.status == cgk_state.WAIT:
             await self.send_question(game)
 
@@ -162,7 +158,10 @@ class BotManager:
         game.status = cgk_state.DISCUSSION
         question = await self.app.store.quiz.get_question_for_game(game)
         game.add_question_to_history(question.id)
-        await self.app.store.tg_api.send_message(game.id, question.title)
+        await self.app.store.tg_api.send_message(
+            game.id,
+            f"{question.title}\nYou have {cgk_config.TIME_LIMIT_DISC_MAIN + cgk_config.TIME_LIMIT_DISC_EXTRA} sec",
+        )
         await asyncio.sleep(cgk_config.TIME_LIMIT_DISC_MAIN)
         await self.app.store.tg_api.send_message(
             game.id, f"{cgk_config.TIME_LIMIT_DISC_EXTRA} seconds remaining"
@@ -205,10 +204,14 @@ class BotManager:
             await self.app.store.tg_api.send_message(game.id, "Team is full")
 
         await self.update_game_db(game)
-        print("After CQ")
-        pprint(game)
 
-    async def check_game_finished(self, game: GameModel):
+    async def check_game_finished(self, game: GameModel) -> None:
+        """
+        Check game finish conditions.
+        If finished, update stats and make game cleanup
+        :param game: Game object
+        :return:
+        """
         if 6 not in (game.score_team, game.score_host):
             return
         if game.score_host == 6:
@@ -232,5 +235,10 @@ class BotManager:
             session.add(player)
 
     @staticmethod
-    def extract_command(message: Message):
+    def extract_command(message: Message) -> str:
+        """
+        Extract possible command from Message text
+        :param message: Message object
+        :return: Possible `/` command
+        """
         return message.text.split("@")[0][1:]

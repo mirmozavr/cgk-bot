@@ -14,9 +14,12 @@ class CGKConfig:
             "about": (
                 "This is a Chto Gde Kogda host.\n"
                 "IMPORTANT! Give me Admin rights so I can see messages\n"
-                "Send /team_up command to form a team\n"
+                "Send /rules to read the game rules\n"
+                "Send /team_up to form a team\n"
                 "Send /start_game to start game\n"
                 "Send /end_game anytime to end the game\n"
+                "Send /group_stats to see group statistic\n"
+                "Send /player_stats to see personal statistic\n"
             ),
             "rules": (
                 f"Game is played up to 6 points. {self.TIME_LIMIT_DISC_MAIN+self.TIME_LIMIT_DISC_EXTRA} sec to discuss"

@@ -190,7 +190,13 @@ class TgApiAccessor(BaseAccessor):
         snd_msg_url = f"{self.base_url}/sendMessage"
         await self.session.get(snd_msg_url, params=params)
 
-    async def send_inline_button(self, message: Message, data: str):
+    async def send_inline_button(self, message: Message, data: str) -> None:
+        """
+        Send inline button to message chat
+        :param message: Message object
+        :param data: Data in button
+        :return:
+        """
         url = f"{self.base_url}/sendMessage"
         params = {
             "chat_id": message.chat.id,
@@ -207,6 +213,12 @@ class TgApiAccessor(BaseAccessor):
         await self.session.get(url, params=params)
 
     async def send_choose_responder_buttons(self, game: GameModel, text: str) -> int:
+        """
+        Send reply buttons with team player names for cap to choose responder
+        :param game: GameModel object
+        :param text: Message text
+        :return: Integer, representing timestamp
+        """
         url = f"{self.base_url}/sendMessage"
         params = {
             "chat_id": game.id,
@@ -224,6 +236,12 @@ class TgApiAccessor(BaseAccessor):
         return (await resp.json())["result"]["date"]
 
     async def remove_buttons(self, game: GameModel, text: str) -> int:
+        """
+        Remove reply buttons
+        :param game: GameModel object
+        :param text: Message text
+        :return: Integer, representing timestamp
+        """
         url = f"{self.base_url}/sendMessage"
         params = {
             "chat_id": game.id,
@@ -234,6 +252,12 @@ class TgApiAccessor(BaseAccessor):
         return (await resp.json())["result"]["date"]
 
     async def answer_cq(self, cq: CallbackQuery, text: str):
+        """
+        Answer to callback query
+        :param cq: CallbackQuery object
+        :param text: Message text
+        :return:
+        """
         url = f"{self.base_url}/answerCallbackQuery"
         params = {
             "callback_query_id": cq.id,
@@ -246,7 +270,7 @@ class TgApiAccessor(BaseAccessor):
         """
         Get game from db and return Game dataclass object
         :param message: Message dataclass object
-        :return: Game dataclass object
+        :return: GameModel object
         """
         stmt = (
             select(GameModel)
@@ -271,6 +295,11 @@ class TgApiAccessor(BaseAccessor):
             return game_model
 
     async def create_player_by_message(self, message: Message) -> PlayerModel:
+        """
+        Add new player to database by message
+        :param message: Message object
+        :return: Newly created PlayerModel
+        """
         player_model = PlayerModel(
             id=message.user.id,
             username=message.user.username if message.user.username else None,
@@ -280,16 +309,14 @@ class TgApiAccessor(BaseAccessor):
             session.add(player_model)
             return player_model
 
-    async def get_capitan(self, game: GameModel) -> Optional[PlayerModel]:
-        stmt = (
-            select(PlayerModel)
-            .where(PlayerModel.id == int(game.cap_id))
-            )
-        async with self.app.database.session.begin() as session:
-            result = await session.scalars(stmt)
-            return result.one_or_none()
-
     async def get_player_by_name(self, game: GameModel, name: str) -> Optional[PlayerModel]:
+        """
+        Get PlayerModel by name. Useful when captain is selecting responder with
+        reply buttons
+        :param game: GameModel object
+        :param name: Player name
+        :return: PlayerModel object
+        """
         stmt = (
             select(PlayerModel)
             .where(
@@ -302,15 +329,26 @@ class TgApiAccessor(BaseAccessor):
             return result.one_or_none()
 
     async def get_player_by_id(self, player_id: int) -> Optional[PlayerModel]:
+        """
+        Get PlayerModel by id
+        :param player_id: ID of the player
+        :return: PlayerModel
+        """
         stmt = (
             select(PlayerModel)
-            .where(PlayerModel.id == player_id)
+            .where(PlayerModel.id == int(player_id))
         )
         async with self.app.database.session.begin() as session:
             result = await session.scalars(stmt)
             return result.one_or_none()
 
-    async def get_team_players_models(self, game: GameModel):
+    async def get_team_players_models(self, game: GameModel) -> list[PlayerModel]:
+        """
+        Get a sequence of PlayerModels representing playing team.
+        Useful when sending reply buttons to capitan
+        :param game: GameModel object
+        :return: List of PlayerModel objects for team members
+        """
         stmt = (
             select(PlayerModel)
             .where(PlayerModel.id.in_(map(int, game.team_to_list())))
