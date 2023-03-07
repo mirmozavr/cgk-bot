@@ -27,6 +27,9 @@ class GameModel(Base):
     q_history = Column(String, default="", nullable=False)
     update_time = Column(Integer, nullable=True)
     responder_id = Column(Integer, nullable=True)
+    wins = Column(Integer, default=0, nullable=False)
+    loses = Column(Integer, default=0, nullable=False)
+    canceled = Column(Integer, default=0, nullable=False)
 
     def q_history_to_list(self):
         return [item for item in self.q_history.split()]
@@ -84,24 +87,17 @@ class GameModel(Base):
         self.responder_id = None
         self.score_team = self.score_host = 0
 
-    def to_dc(self):
-        return Game(
-            id=self.id,
-            status=self.status,
-            score_host=self.score_host,
-            score_team=self.score_team,
-            team=self.team,
-            q_history=self.q_history,
-            update_time=self.update_time,
-        )
-
     @property
     def score(self):
         return f"TEAM: {self.score_team}\nHOST: {self.score_host}"
 
+    @property
+    def statistic(self):
+        return f"Group stats:\nWins: {self.wins}\nLoses: {self.loses}\nCanceled: {self.canceled}"
+
     def __repr__(self):
         return (
-            f"{self.__class__.__name__} ({self.id}\n"
+            f"{self.__class__.__name__} (id: {self.id}\n"
             f"status: {self.status}\n"
             f"score_host: {self.score_host}\n"
             f"score_team: {self.score_team}\n"
@@ -117,6 +113,17 @@ class PlayerModel(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String, nullable=True)
     first_name = Column(String, nullable=True)
+    ans_correct = Column(Integer, nullable=False, default=0)
+    ans_wrong = Column(Integer, nullable=False, default=0)
+    ans_late = Column(Integer, nullable=False, default=0)
+
+    @property
+    def statistic(self):
+        return (
+            f"Personal stats:\nCorrect answers: {self.ans_correct}\n"
+            f"Wrong answers: {self.ans_wrong}\n"
+            f"Late answers: {self.ans_late}"
+        )
 
     def __repr__(self):
         return (
