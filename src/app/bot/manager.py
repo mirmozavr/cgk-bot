@@ -1,4 +1,5 @@
 import asyncio
+import pprint
 import typing as t
 
 from sqlalchemy.exc import IntegrityError
@@ -30,9 +31,9 @@ class BotManager:
         if game is None:
             game = await self.app.store.tg_api.create_game_by_message(message)
 
-        # skip messages if in discussion, capitan or answer
+        # skip messages if in discussion
         if (
-            game.status in (cgk_state.DISCUSSION, cgk_state.CAPITAN, cgk_state.ANSWER)
+            game.status == cgk_state.DISCUSSION
             and self.extract_command(message) != "end_game"
         ):
             return
@@ -46,7 +47,8 @@ class BotManager:
             await self.app.store.tg_api.send_message(game.id, game.statistic)
         elif self.extract_command(message) == "player_stats":
             player = await self.app.store.tg_api.get_player_by_id(message.user.id)
-            await self.app.store.tg_api.send_message(game.id, player.statistic)
+            if player:
+                await self.app.store.tg_api.send_message(game.id, player.statistic)
 
         # Handle commands
         # Send join team inline buttons

@@ -1,5 +1,4 @@
 import json
-import pprint
 import typing as t
 from typing import Optional, List
 
@@ -49,7 +48,6 @@ class TgApiAccessor(BaseAccessor):
         get_updates_url = f"{self.base_url}/getUpdates"
         async with self.session.get(get_updates_url, params=params) as response:
             data = await response.json()
-            pprint.pp(data)
             for raw_update in data["result"]:
                 # process only group messages
                 if ("message" in raw_update) and (
