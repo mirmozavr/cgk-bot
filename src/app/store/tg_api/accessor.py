@@ -1,3 +1,4 @@
+import asyncio
 import json
 import typing as t
 from typing import Optional, List
@@ -27,7 +28,7 @@ class TgApiAccessor(BaseAccessor):
         self.session = ClientSession()
         self.poller = Poller(self.app.store)
         await self.set_initial_commands()
-        await self.poller.start()
+        asyncio.create_task(self.poller.start())
 
     async def disconnect(self, app: "Application"):
         await self.poller.stop()
