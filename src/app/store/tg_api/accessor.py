@@ -219,15 +219,27 @@ class TgApiAccessor(BaseAccessor):
         :return: Integer, representing timestamp
         """
         url = f"{self.base_url}/sendMessage"
+        capitan = await self.get_player_by_id(game.cap_id)
         params = {
             "chat_id": game.id,
-            "text": text,
+            "text": f"{capitan.first_name} {text}",
+            "entities": json.dumps(
+              [{
+                  "type": "text_mention",
+                  "offset": 0,
+                  "length": len(capitan.first_name) - 1,
+                  "user": {
+                      "id": game.cap_id
+                  }
+              }]
+            ),
             "reply_markup": json.dumps(
                 {
                     "keyboard": [[{"text": f"{player.first_name}"}
                                   for player in await self.get_team_players_models(game)]],
                     "resize_keyboard": True,
                     "one_time_keyboard": True,
+                    "selective": True
                 }
             ),
         }

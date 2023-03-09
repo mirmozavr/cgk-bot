@@ -1,5 +1,4 @@
 import asyncio
-import pprint
 import typing as t
 
 from sqlalchemy.exc import IntegrityError
