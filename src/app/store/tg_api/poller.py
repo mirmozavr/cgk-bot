@@ -12,16 +12,15 @@ class Poller:
         self.poll_task: Optional[Task] = None
 
     async def start(self):
-        self.poll_task = asyncio.create_task(self.poll())
+        self.poll_task = self.poll()
         self.is_running = True
-        await self.poll_task
+        asyncio.create_task(self.poll_task)
 
     async def stop(self):
         self.is_running = False
         if self.poll_task:
             await self.poll_task
             self.poll_task = None
-        await self.store.tg_api.session.close()
 
     async def poll(self):
         while self.is_running:

@@ -28,10 +28,11 @@ class TgApiAccessor(BaseAccessor):
         self.session = ClientSession()
         self.poller = Poller(self.app.store)
         await self.set_initial_commands()
-        asyncio.create_task(self.poller.start())
+        await self.poller.start()
 
     async def disconnect(self, app: "Application"):
         await self.poller.stop()
+        await self.session.close()
         self.session = None
         self.poller = None
         self.offset = None
@@ -59,7 +60,7 @@ class TgApiAccessor(BaseAccessor):
                     continue
                 update = self.dict_to_dc(raw_update)
 
-                await self.app.store.bot_manager.handle_update(update)
+                asyncio.create_task(self.app.store.bot_manager.handle_update(update))
 
                 # Increment offset by 1 to mark updates as accepted
                 self.offset = update.update_id + 1
