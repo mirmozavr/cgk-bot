@@ -56,8 +56,8 @@ apispec_params = {
     "swagger_path": "/docs"}
 
 
-def setup_app(*, dev_config: bool):
-    setup_config(app, dev_config)
+def setup_app(config_path: str):
+    setup_config(app, config_path)
     setup_aiohttp_apispec(app, **apispec_params)
     setup_session(app)
     setup_middlewares(app)

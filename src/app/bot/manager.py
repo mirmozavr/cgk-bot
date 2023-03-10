@@ -159,6 +159,8 @@ class BotManager:
         game.status = cgk_state.DISCUSSION
         question = await self.app.store.quiz.get_question_for_game(game)
         game.add_question_to_history(question.id)
+        await self.update_game_db(game)
+
         await self.app.store.tg_api.send_message(
             game.id,
             f"{question.title}\nYou have {cgk_config.TIME_LIMIT_DISC_MAIN + cgk_config.TIME_LIMIT_DISC_EXTRA} sec",

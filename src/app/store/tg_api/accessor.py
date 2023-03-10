@@ -228,7 +228,7 @@ class TgApiAccessor(BaseAccessor):
               [{
                   "type": "text_mention",
                   "offset": 0,
-                  "length": len(capitan.first_name) - 1,
+                  "length": len(capitan.first_name),
                   "user": {
                       "id": game.cap_id
                   }

@@ -1,3 +1,4 @@
+import pathlib
 import sys
 from pathlib import Path
 
@@ -10,4 +11,7 @@ if path not in sys.path:
 
 if __name__ == "__main__":
     from src.app.web.app import setup_app
-    run_app(setup_app(dev_config=True))
+
+    run_app(
+        setup_app(config_path=str(pathlib.Path("./src/env/dev.env.yaml").absolute()))
+    )
