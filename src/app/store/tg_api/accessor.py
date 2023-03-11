@@ -31,8 +31,10 @@ class TgApiAccessor(BaseAccessor):
         await self.poller.start()
 
     async def disconnect(self, app: "Application"):
-        await self.poller.stop()
-        await self.session.close()
+        if self.poller:
+            await self.poller.stop()
+        if self.session:
+            await self.session.close()
         self.session = None
         self.poller = None
         self.offset = None
