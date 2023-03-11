@@ -1,8 +1,8 @@
 import typing as t
 from dataclasses import dataclass
-from pathlib import Path
 
-import ruamel.yaml as yaml
+from ruamel.yaml import YAML
+
 if t.TYPE_CHECKING:
     from src.app.web.app import Application
 
@@ -49,8 +49,9 @@ class Config:
 
 
 def setup_config(app: "Application", config_path: str):
+    yaml = YAML(typ="safe", pure=True)
     with open(config_path, "r") as f:
-        raw_config = yaml.safe_load(f)
+        raw_config = yaml.load(f)
 
     app.config = Config(
         session=SessionConfig(
