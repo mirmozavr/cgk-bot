@@ -31,10 +31,7 @@ class BotManager:
             game = await self.app.store.tg_api.create_game_by_message(message)
 
         # skip messages if in discussion
-        if (
-            game.status == cgk_state.DISCUSSION
-            and self.extract_command(message) != "end_game"
-        ):
+        if game.status == cgk_state.DISCUSSION:
             return
         # handle menu commands
         elif self.extract_command(message) in cgk_config.menu:
