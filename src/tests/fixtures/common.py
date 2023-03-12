@@ -24,9 +24,7 @@ def event_loop():
 
 @pytest.fixture(scope="session")
 def server():
-    app = setup_app(
-        config_path=str(Path("./src/tests/config_test.yaml").absolute())
-    )
+    app = setup_app(config_path=str(Path("./src/tests/config_test.yaml").absolute()))
     app.on_startup.clear()
     app.on_shutdown.clear()
     app.on_cleanup.clear()
